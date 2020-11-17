@@ -212,7 +212,7 @@ cdef class Splitter:
         return 0
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features, set f, SIZE_t n_f) nogil except -1:
+                        SIZE_t* n_constant_features, set f, SIZE_t n_f) except -1:
         """Find the best split on node samples[start:end].
 
         This is a placeholder method. The majority of computation will be done
@@ -266,7 +266,7 @@ cdef class BestSplitter(BaseDenseSplitter):
                                self.random_state), self.__getstate__())
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features, set f, SIZE_t n_f) nogil except -1:
+                        SIZE_t* n_constant_features, set f, SIZE_t n_f) except -1:
         """Find the best split on node samples[start:end]
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -311,67 +311,69 @@ cdef class BestSplitter(BaseDenseSplitter):
         cdef SIZE_t partition_end
 
         _init_split(&best, end)
-        ## start find best split in f
-        # for i in f:
-        #     for j in range(n_features):
-        #         if features[j] == f[i]:
-        #             current.feature = features[j]
+        # start find best split in f
+        print(f"f: {f}")
+        for i in f:
+            for j in range(n_features):
+                if features[j] == f[i]:
+                    current.feature = features[j]
 
-                    ## Find min, max
-                    # min_feature_value = self.X[samples[start], current.feature]
-                    # max_feature_value = min_feature_value
-                    # Xf[start] = min_feature_value
-                    #
-                    # for p in range(start + 1, end):
-                    #     current_feature_value = self.X[samples[p], current.feature]
-                    #     Xf[p] = current_feature_value
-                    #
-                    #     if current_feature_value < min_feature_value:
-                    #         min_feature_value = current_feature_value
-                    #     elif current_feature_value > max_feature_value:
-                    #         max_feature_value = current_feature_value
-                    #
-                    # current.threshold = rand_uniform(min_feature_value,
-                    #                                  max_feature_value,
-                    #                                  random_state)
-                    #
-                    # if current.threshold == max_feature_value:
-                    #     current.threshold = min_feature_value
-                    #
-                    # # Partition
-                    # p, partition_end = start, end
-                    # while p < partition_end:
-                    #     if Xf[p] <= current.threshold:
-                    #         p += 1
-                    #     else:
-                    #         partition_end -= 1
-                    #
-                    #         Xf[p], Xf[partition_end] = Xf[partition_end], Xf[p]
-                    #         samples[p], samples[partition_end] = samples[partition_end], samples[p]
-                    #
-                    # current.pos = partition_end
-                    #
-                    # # Reject if min_samples_leaf is not guaranteed
-                    # if (((current.pos - start) < min_samples_leaf) or
-                    #         ((end - current.pos) < min_samples_leaf)):
-                    #     continue
-                    #
-                    # # Evaluate split
-                    # self.criterion.reset()
-                    # self.criterion.update(current.pos)
-                    #
-                    # # Reject if min_weight_leaf is not satisfied
-                    # if ((self.criterion.weighted_n_left < min_weight_leaf) or
-                    #         (self.criterion.weighted_n_right < min_weight_leaf)):
-                    #     continue
-                    #
-                    # current_proxy_improvement = self.criterion.proxy_impurity_improvement()
-                    #
-                    # if current_proxy_improvement > best_proxy_improvement:
-                    #     best_proxy_improvement = current_proxy_improvement
-                    #     best = current  # copy
 
-        ## end find best split in f
+                    # Find min, max
+                    min_feature_value = self.X[samples[start], current.feature]
+                    max_feature_value = min_feature_value
+                    Xf[start] = min_feature_value
+
+                    for p in range(start + 1, end):
+                        current_feature_value = self.X[samples[p], current.feature]
+                        Xf[p] = current_feature_value
+
+                        if current_feature_value < min_feature_value:
+                            min_feature_value = current_feature_value
+                        elif current_feature_value > max_feature_value:
+                            max_feature_value = current_feature_value
+
+                    current.threshold = rand_uniform(min_feature_value,
+                                                     max_feature_value,
+                                                     random_state)
+
+                    if current.threshold == max_feature_value:
+                        current.threshold = min_feature_value
+
+                    # Partition
+                    p, partition_end = start, end
+                    while p < partition_end:
+                        if Xf[p] <= current.threshold:
+                            p += 1
+                        else:
+                            partition_end -= 1
+
+                            Xf[p], Xf[partition_end] = Xf[partition_end], Xf[p]
+                            samples[p], samples[partition_end] = samples[partition_end], samples[p]
+
+                    current.pos = partition_end
+
+                    # Reject if min_samples_leaf is not guaranteed
+                    if (((current.pos - start) < min_samples_leaf) or
+                            ((end - current.pos) < min_samples_leaf)):
+                        continue
+
+                    # Evaluate split
+                    self.criterion.reset()
+                    self.criterion.update(current.pos)
+
+                    # Reject if min_weight_leaf is not satisfied
+                    if ((self.criterion.weighted_n_left < min_weight_leaf) or
+                            (self.criterion.weighted_n_right < min_weight_leaf)):
+                        continue
+
+                    current_proxy_improvement = self.criterion.proxy_impurity_improvement()
+
+                    if current_proxy_improvement > best_proxy_improvement:
+                        best_proxy_improvement = current_proxy_improvement
+                        best = current  # copy
+
+        # end find best split in f
 
 
         # Sample up to max_features without replacement using a
@@ -645,7 +647,7 @@ cdef class RandomSplitter(BaseDenseSplitter):
                                  self.random_state), self.__getstate__())
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features, set f, SIZE_t n_f) nogil except -1:
+                        SIZE_t* n_constant_features, set f, SIZE_t n_f) except -1:
         """Find the best random split on node samples[start:end]
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -1164,7 +1166,7 @@ cdef class BestSparseSplitter(BaseSparseSplitter):
                                      self.random_state), self.__getstate__())
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features, set f, SIZE_t n_f) nogil except -1:
+                        SIZE_t* n_constant_features, set f, SIZE_t n_f) except -1:
         """Find the best split on node samples[start:end], using sparse features
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)
@@ -1394,7 +1396,7 @@ cdef class RandomSparseSplitter(BaseSparseSplitter):
                                        self.random_state), self.__getstate__())
 
     cdef int node_split(self, double impurity, SplitRecord* split,
-                        SIZE_t* n_constant_features, set f, SIZE_t n_f) nogil except -1:
+                        SIZE_t* n_constant_features, set f, SIZE_t n_f) except -1:
         """Find a random split on node samples[start:end], using sparse features
 
         Returns -1 in case of failure to allocate memory (and raise MemoryError)

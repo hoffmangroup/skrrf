@@ -86,7 +86,7 @@ cdef class Splitter:
     cdef int node_split(self,
                         double impurity,   # Impurity of the node
                         SplitRecord* split,
-                        SIZE_t* n_constant_features, set f, SIZE_t n_f) nogil except -1
+                        SIZE_t* n_constant_features, set f, SIZE_t n_f) except -1
 
     cdef void node_value(self, double* dest) nogil
 

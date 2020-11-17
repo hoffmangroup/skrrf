@@ -190,82 +190,83 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
         cdef Stack stack = Stack(INITIAL_STACK_SIZE)
         cdef StackRecord stack_record
 
-        with nogil:
-            # push root node onto stack
-            rc = stack.push(0, n_node_samples, 0, _TREE_UNDEFINED, 0, INFINITY, 0)
-            if rc == -1:
-                # got return code -1 - out-of-memory
-                with gil:
-                    raise MemoryError()
 
-            while not stack.is_empty():
-                stack.pop(&stack_record)
+        # push root node onto stack
+        rc = stack.push(0, n_node_samples, 0, _TREE_UNDEFINED, 0, INFINITY, 0)
+        if rc == -1:
+            # got return code -1 - out-of-memory
+            # with gil:
+            raise MemoryError()
 
-                start = stack_record.start
-                end = stack_record.end
-                depth = stack_record.depth
-                parent = stack_record.parent
-                is_left = stack_record.is_left
-                impurity = stack_record.impurity
-                n_constant_features = stack_record.n_constant_features
+        while not stack.is_empty():
+            stack.pop(&stack_record)
 
-                n_node_samples = end - start
-                splitter.node_reset(start, end, &weighted_n_node_samples)
+            start = stack_record.start
+            end = stack_record.end
+            depth = stack_record.depth
+            parent = stack_record.parent
+            is_left = stack_record.is_left
+            impurity = stack_record.impurity
+            n_constant_features = stack_record.n_constant_features
 
-                is_leaf = (depth >= max_depth or
-                           n_node_samples < min_samples_split or
-                           n_node_samples < 2 * min_samples_leaf or
-                           weighted_n_node_samples < 2 * min_weight_leaf)
+            n_node_samples = end - start
+            splitter.node_reset(start, end, &weighted_n_node_samples)
 
-                if first:
-                    impurity = splitter.node_impurity()
-                    first = 0
+            is_leaf = (depth >= max_depth or
+                       n_node_samples < min_samples_split or
+                       n_node_samples < 2 * min_samples_leaf or
+                       weighted_n_node_samples < 2 * min_weight_leaf)
 
-                is_leaf = (is_leaf or
-                           (impurity <= min_impurity_split))
+            if first:
+                impurity = splitter.node_impurity()
+                first = 0
 
-                if not is_leaf:
-                    splitter.node_split(impurity, &split, &n_constant_features, f, n_f)
-                    # If EPSILON=0 in the below comparison, float precision
-                    # issues stop splitting, producing trees that are
-                    # dissimilar to v0.18
-                    is_leaf = (is_leaf or split.pos >= end or
-                               (split.improvement + EPSILON <
-                                min_impurity_decrease))
+            is_leaf = (is_leaf or
+                       (impurity <= min_impurity_split))
 
-                node_id = tree._add_node(parent, is_left, is_leaf, split.feature,
-                                         split.threshold, impurity, n_node_samples,
-                                         weighted_n_node_samples)
+            if not is_leaf:
+                splitter.node_split(impurity, &split, &n_constant_features, f, n_f)
+                # If EPSILON=0 in the below comparison, float precision
+                # issues stop splitting, producing trees that are
+                # dissimilar to v0.18
+                is_leaf = (is_leaf or split.pos >= end or
+                           (split.improvement + EPSILON <
+                            min_impurity_decrease))
 
-                if node_id == SIZE_MAX:
-                    rc = -1
+            node_id = tree._add_node(parent, is_left, is_leaf, split.feature,
+                                     split.threshold, impurity, n_node_samples,
+                                     weighted_n_node_samples)
+
+            if node_id == SIZE_MAX:
+                rc = -1
+                break
+
+            # Store value for all nodes, to facilitate tree/model
+            # inspection and interpretation
+            splitter.node_value(tree.value + node_id * tree.value_stride)
+
+            if not is_leaf:
+                # Push right child on stack
+                rc = stack.push(split.pos, end, depth + 1, node_id, 0,
+                                split.impurity_right, n_constant_features)
+                if rc == -1:
                     break
 
-                # Store value for all nodes, to facilitate tree/model
-                # inspection and interpretation
-                splitter.node_value(tree.value + node_id * tree.value_stride)
+                # Push left child on stack
+                rc = stack.push(start, split.pos, depth + 1, node_id, 1,
+                                split.impurity_left, n_constant_features)
+                if rc == -1:
+                    break
 
-                if not is_leaf:
-                    # Push right child on stack
-                    rc = stack.push(split.pos, end, depth + 1, node_id, 0,
-                                    split.impurity_right, n_constant_features)
-                    if rc == -1:
-                        break
+            if depth > max_depth_seen:
+                max_depth_seen = depth
 
-                    # Push left child on stack
-                    rc = stack.push(start, split.pos, depth + 1, node_id, 1,
-                                    split.impurity_left, n_constant_features)
-                    if rc == -1:
-                        break
+        if rc >= 0:
+            rc = tree._resize_c(tree.node_count)
 
-                if depth > max_depth_seen:
-                    max_depth_seen = depth
+        if rc >= 0:
+            tree.max_depth = max_depth_seen
 
-            if rc >= 0:
-                rc = tree._resize_c(tree.node_count)
-
-            if rc >= 0:
-                tree.max_depth = max_depth_seen
         if rc == -1:
             raise MemoryError()
 
@@ -343,80 +344,80 @@ cdef class BestFirstTreeBuilder(TreeBuilder):
         cdef SIZE_t init_capacity = max_split_nodes + max_leaf_nodes
         tree._resize(init_capacity)
 
-        with nogil:
-            # add root to frontier
-            rc = self._add_split_node(splitter, tree, 0, n_node_samples,
-                                      INFINITY, IS_FIRST, IS_LEFT, NULL, 0,
-                                      f, n_f,
-                                      &split_node_left)
-            if rc >= 0:
-                rc = _add_to_frontier(&split_node_left, frontier)
 
-            if rc == -1:
-                with gil:
-                    raise MemoryError()
+        # add root to frontier
+        rc = self._add_split_node(splitter, tree, 0, n_node_samples,
+                                  INFINITY, IS_FIRST, IS_LEFT, NULL, 0,
+                                  f, n_f,
+                                  &split_node_left)
+        if rc >= 0:
+            rc = _add_to_frontier(&split_node_left, frontier)
 
-            while not frontier.is_empty():
-                frontier.pop(&record)
+        if rc == -1:
+            # with gil:
+            raise MemoryError()
 
+        while not frontier.is_empty():
+            frontier.pop(&record)
+
+            node = &tree.nodes[record.node_id]
+            is_leaf = (record.is_leaf or max_split_nodes <= 0)
+
+            if is_leaf:
+                # Node is not expandable; set node as leaf
+                node.left_child = _TREE_LEAF
+                node.right_child = _TREE_LEAF
+                node.feature = _TREE_UNDEFINED
+                node.threshold = _TREE_UNDEFINED
+
+            else:
+                # Node is expandable
+
+                # Decrement number of split nodes available
+                max_split_nodes -= 1
+
+                # Compute left split node
+                rc = self._add_split_node(splitter, tree,
+                                          record.start, record.pos,
+                                          record.impurity_left,
+                                          IS_NOT_FIRST, IS_LEFT, node,
+                                          record.depth + 1,
+                                          f, n_f,
+                                          &split_node_left)
+                if rc == -1:
+                    break
+
+                # tree.nodes may have changed
                 node = &tree.nodes[record.node_id]
-                is_leaf = (record.is_leaf or max_split_nodes <= 0)
 
-                if is_leaf:
-                    # Node is not expandable; set node as leaf
-                    node.left_child = _TREE_LEAF
-                    node.right_child = _TREE_LEAF
-                    node.feature = _TREE_UNDEFINED
-                    node.threshold = _TREE_UNDEFINED
+                # Compute right split node
+                rc = self._add_split_node(splitter, tree, record.pos,
+                                          record.end,
+                                          record.impurity_right,
+                                          IS_NOT_FIRST, IS_NOT_LEFT, node,
+                                          record.depth + 1,
+                                          f, n_f,
+                                          &split_node_right)
+                if rc == -1:
+                    break
 
-                else:
-                    # Node is expandable
+                # Add nodes to queue
+                rc = _add_to_frontier(&split_node_left, frontier)
+                if rc == -1:
+                    break
 
-                    # Decrement number of split nodes available
-                    max_split_nodes -= 1
+                rc = _add_to_frontier(&split_node_right, frontier)
+                if rc == -1:
+                    break
 
-                    # Compute left split node
-                    rc = self._add_split_node(splitter, tree,
-                                              record.start, record.pos,
-                                              record.impurity_left,
-                                              IS_NOT_FIRST, IS_LEFT, node,
-                                              record.depth + 1,
-                                              f, n_f,
-                                              &split_node_left)
-                    if rc == -1:
-                        break
+            if record.depth > max_depth_seen:
+                max_depth_seen = record.depth
 
-                    # tree.nodes may have changed
-                    node = &tree.nodes[record.node_id]
+        if rc >= 0:
+            rc = tree._resize_c(tree.node_count)
 
-                    # Compute right split node
-                    rc = self._add_split_node(splitter, tree, record.pos,
-                                              record.end,
-                                              record.impurity_right,
-                                              IS_NOT_FIRST, IS_NOT_LEFT, node,
-                                              record.depth + 1,
-                                              f, n_f,
-                                              &split_node_right)
-                    if rc == -1:
-                        break
-
-                    # Add nodes to queue
-                    rc = _add_to_frontier(&split_node_left, frontier)
-                    if rc == -1:
-                        break
-
-                    rc = _add_to_frontier(&split_node_right, frontier)
-                    if rc == -1:
-                        break
-
-                if record.depth > max_depth_seen:
-                    max_depth_seen = record.depth
-
-            if rc >= 0:
-                rc = tree._resize_c(tree.node_count)
-
-            if rc >= 0:
-                tree.max_depth = max_depth_seen
+        if rc >= 0:
+            tree.max_depth = max_depth_seen
 
         if rc == -1:
             raise MemoryError()
@@ -426,7 +427,7 @@ cdef class BestFirstTreeBuilder(TreeBuilder):
                                     bint is_first, bint is_left, Node* parent,
                                     SIZE_t depth,
                                     set f, SIZE_t n_f,
-                                    PriorityHeapRecord* res) nogil except -1:
+                                    PriorityHeapRecord* res) except -1:
         """Adds node w/ partition ``[start, end)`` to the frontier. """
         cdef SplitRecord split
         cdef SIZE_t node_id
