@@ -315,7 +315,7 @@ cdef class BestSplitter(BaseDenseSplitter):
         print(f"f: {f}")
         for i in f:
             for j in range(n_features):
-                if features[j] == f[i]:
+                if features[j] == i:
                     current.feature = features[j]
 
 
@@ -519,7 +519,7 @@ cdef class BestSplitter(BaseDenseSplitter):
         n_constant_features[0] = n_total_constants
         #TODO:XXX
         # printf("%d\n", best.feature)
-        # f.add(best.feature)
+        f.add(best.feature)
         return 0
 
 
