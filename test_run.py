@@ -1,4 +1,4 @@
-from _forest import RegularizedRandomForestClassifier
+from skrrf._forest import RegularizedRandomForestClassifier
 from sklearn.datasets import make_classification
 import numpy as np
 
