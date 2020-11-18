@@ -139,7 +139,7 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
                 set f=None, SIZE_t n_f=0,
                 np.ndarray sample_weight=None):
         """Build a decision tree from the training set (X, y)."""
-        print("build_depth_first, f: {}")
+        print(f"build_depth_first, f: {f}")
         # check input
         X, y, sample_weight = self._check_input(X, y, sample_weight)
 

@@ -145,6 +145,8 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
     def fit(self, X, y, sample_weight=None, check_input=True, f=set(),
             X_idx_sorted="deprecated"):
 
+        print(f"_classes BaseDecisionTree fit f: {f}")
+
         random_state = check_random_state(self.random_state)
 
         if self.ccp_alpha < 0.0:
@@ -867,7 +869,7 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
             min_impurity_split=min_impurity_split,
             ccp_alpha=ccp_alpha)
 
-    def fit(self, X, y, sample_weight=None, check_input=True,
+    def fit(self, X, y, sample_weight=None, check_input=True, f=set(),
             X_idx_sorted="deprecated"):
         """Build a decision tree classifier from the training set (X, y).
 
@@ -903,12 +905,14 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
         self : DecisionTreeClassifier
             Fitted estimator.
         """
+        print(f"_classes DecisionTreeClassifier fit f: {f}")
 
         super().fit(
             X, y,
             sample_weight=sample_weight,
             check_input=check_input,
-            X_idx_sorted=X_idx_sorted)
+            X_idx_sorted=X_idx_sorted,
+            f=f)
         return self
 
     def predict_proba(self, X, check_input=True):
