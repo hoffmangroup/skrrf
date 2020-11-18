@@ -1,5 +1,6 @@
 from setuptools import setup, Extension
 from Cython.Build import cythonize
+import numpy
 
 exts = [Extension(name='skrrf.tree._tree', sources=['skrrf/tree/_tree.pyx']),
         Extension(name='skrrf.tree._criterion', sources=['skrrf/tree/_criterion.pyx']),
@@ -15,7 +16,8 @@ setup(
     author_email='mickael.mendez@mail.utoronto.ca',
     description='',
     # install_requires=['numpy', '', 'scikit-learn'],
-    ext_modules=cythonize(exts)
+    ext_modules=cythonize(exts),
+    include_dirs=[numpy.get_include()]
 )
 
 #criterion, splitter, tree
