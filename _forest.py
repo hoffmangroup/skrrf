@@ -49,6 +49,7 @@ import numpy as np
 from scipy.sparse import issparse
 from scipy.sparse import hstack as sparse_hstack
 from joblib import Parallel
+from collections import defaultdict
 
 from sklearn.base import ClassifierMixin, RegressorMixin, MultiOutputMixin
 from sklearn.metrics import r2_score
@@ -144,13 +145,43 @@ def _parallel_build_trees(tree, forest, X, y, sample_weight, tree_idx, n_trees,
     Private function used to fit a single tree in parallel."""
     if verbose > 1:
         print("building tree %d of %d" % (tree_idx + 1, n_trees))
+    # stratified_down_sampling = True
 
-    if forest.bootstrap:
+    if forest.stratified_down_sampling:
+                ### me me me
         n_samples = X.shape[0]
         if sample_weight is None:
             curr_sample_weight = np.ones((n_samples,), dtype=np.float64)
         else:
             curr_sample_weight = sample_weight.copy()
+
+        random_state = check_random_state(tree.random_state)
+        bc = np.bincount(y.flatten().astype(int))
+        len_min_class = np.min(bc)
+
+        d = defaultdict(list)
+        indices = []
+
+        for i, val in enumerate(y.flatten().astype(int)):
+            d[val].append(i)
+
+        for c, indexes in d.items():
+            indices.extend(random_state.choice(indexes, len_min_class, replace=True))
+
+        np.random.shuffle(indices)
+
+        indices = np.array(indices)
+        sample_counts = np.bincount(indices, minlength=n_samples)
+        curr_sample_weight *= sample_counts
+        # print forest.f
+        tree.fit(X, y, sample_weight=curr_sample_weight, check_input=False, f=forest.f)
+    elif forest.bootstrap:
+        n_samples = X.shape[0]
+        if sample_weight is None:
+            curr_sample_weight = np.ones((n_samples,), dtype=np.float64)
+        else:
+            curr_sample_weight = sample_weight.copy()
+        print(f"sample_weight: {curr_sample_weight}")
 
         indices = _generate_sample_indices(tree.random_state, n_samples,
                                            n_samples_bootstrap)
@@ -1200,6 +1231,7 @@ class RegularizedRandomForestClassifier(ForestClassifier):
         self.min_impurity_split = min_impurity_split
         self.ccp_alpha = ccp_alpha
         self.f = set()
+        self.stratified_down_sampling = True
 
 
 class RandomForestRegressor(ForestRegressor):

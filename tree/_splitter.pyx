@@ -274,6 +274,9 @@ cdef class BestSplitter(BaseDenseSplitter):
         """
         # Find the best split
         cdef SIZE_t* samples = self.samples
+        print("samples")
+        for abc in range(self.n_samples):
+            print(samples[abc])
         cdef SIZE_t start = self.start
         cdef SIZE_t end = self.end
 
@@ -1173,7 +1176,11 @@ cdef class BestSparseSplitter(BaseSparseSplitter):
         or 0 otherwise.
         """
         # Find the best split
+
         cdef SIZE_t* samples = self.samples
+        print("samples")
+        for i in range(self.n_samples):
+            print(samples[i])
         cdef SIZE_t start = self.start
         cdef SIZE_t end = self.end
 
@@ -1404,6 +1411,10 @@ cdef class RandomSparseSplitter(BaseSparseSplitter):
         """
         # Find the best split
         cdef SIZE_t* samples = self.samples
+
+        print("samples")
+        for i in range(self.n_samples):
+            print(samples[i])
         cdef SIZE_t start = self.start
         cdef SIZE_t end = self.end
 

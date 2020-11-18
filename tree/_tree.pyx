@@ -142,6 +142,8 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
         print(f"build_depth_first, f: {f}")
         # check input
         X, y, sample_weight = self._check_input(X, y, sample_weight)
+        print("DepthFirstTreeBuilder sample_weight ")
+        print(sample_weight)
 
         cdef DOUBLE_t* sample_weight_ptr = NULL
         if sample_weight is not None:
@@ -168,6 +170,8 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
 
         # Recursive partition (without actual recursion)
         splitter.init(X, y, sample_weight_ptr)
+        print("spliter.n_samples")
+        print(splitter.n_samples)
 
         cdef SIZE_t start
         cdef SIZE_t end
