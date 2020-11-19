@@ -133,17 +133,17 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
         self.max_depth = max_depth
         self.min_impurity_decrease = min_impurity_decrease
         self.min_impurity_split = min_impurity_split
-        print("init_depth_first_tree")
+        # print("init_depth_first_tree")
 
     cpdef build(self, Tree tree, object X, np.ndarray y,
                 set f=None, SIZE_t n_f=0,
                 np.ndarray sample_weight=None):
         """Build a decision tree from the training set (X, y)."""
-        print(f"build_depth_first, f: {f}")
+        # print(f"build_depth_first, f: {f}")
         # check input
         X, y, sample_weight = self._check_input(X, y, sample_weight)
-        print("DepthFirstTreeBuilder sample_weight ")
-        print(sample_weight)
+        # print("DepthFirstTreeBuilder sample_weight ")
+        # print(sample_weight)
 
         cdef DOUBLE_t* sample_weight_ptr = NULL
         if sample_weight is not None:
@@ -170,8 +170,8 @@ cdef class DepthFirstTreeBuilder(TreeBuilder):
 
         # Recursive partition (without actual recursion)
         splitter.init(X, y, sample_weight_ptr)
-        print("spliter.n_samples")
-        print(splitter.n_samples)
+        # print("spliter.n_samples")
+        # print(splitter.n_samples)
 
         cdef SIZE_t start
         cdef SIZE_t end

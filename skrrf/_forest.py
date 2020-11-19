@@ -143,8 +143,8 @@ def _parallel_build_trees(tree, forest, X, y, sample_weight, tree_idx, n_trees,
                           n_samples_bootstrap=None):
     """
     Private function used to fit a single tree in parallel."""
-    if verbose > 1:
-        print("building tree %d of %d" % (tree_idx + 1, n_trees))
+    # if verbose > 1:
+    print("building tree %d of %d" % (tree_idx + 1, n_trees))
     # stratified_down_sampling = True
 
     if forest.stratified_down_sampling:
@@ -181,7 +181,7 @@ def _parallel_build_trees(tree, forest, X, y, sample_weight, tree_idx, n_trees,
             curr_sample_weight = np.ones((n_samples,), dtype=np.float64)
         else:
             curr_sample_weight = sample_weight.copy()
-        print(f"sample_weight: {curr_sample_weight}")
+        # print(f"sample_weight: {curr_sample_weight}")
 
         indices = _generate_sample_indices(tree.random_state, n_samples,
                                            n_samples_bootstrap)
@@ -196,7 +196,7 @@ def _parallel_build_trees(tree, forest, X, y, sample_weight, tree_idx, n_trees,
         elif class_weight == 'balanced_subsample':
             curr_sample_weight *= compute_sample_weight('balanced', y,
                                                         indices=indices)
-        print(f"_parallel_build_trees forest.f: {forest.f}")
+        # print(f"_parallel_build_trees forest.f: {forest.f}")
         tree.fit(X, y, sample_weight=curr_sample_weight, check_input=False, f=forest.f)
     else:
         tree.fit(X, y, sample_weight=sample_weight, check_input=False, f=forest.f)

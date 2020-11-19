@@ -145,7 +145,7 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
     def fit(self, X, y, sample_weight=None, check_input=True, f=set(),
             X_idx_sorted="deprecated"):
 
-        print(f"_classes BaseDecisionTree fit f: {f}")
+        # print(f"_classes BaseDecisionTree fit f: {f}")
 
         random_state = check_random_state(self.random_state)
 
@@ -369,7 +369,7 @@ class BaseDecisionTree(MultiOutputMixin, BaseEstimator, metaclass=ABCMeta):
                               self.n_outputs_)
 
         # Use BestFirst if max_leaf_nodes given; use DepthFirst otherwise
-        print(f"Max leaf node: {max_leaf_nodes}")
+        # print(f"Max leaf node: {max_leaf_nodes}")
         if max_leaf_nodes < 0:
             builder = DepthFirstTreeBuilder(splitter, min_samples_split,
                                             min_samples_leaf,
@@ -905,7 +905,7 @@ class DecisionTreeClassifier(ClassifierMixin, BaseDecisionTree):
         self : DecisionTreeClassifier
             Fitted estimator.
         """
-        print(f"_classes DecisionTreeClassifier fit f: {f}")
+        # print(f"_classes DecisionTreeClassifier fit f: {f}")
 
         super().fit(
             X, y,
