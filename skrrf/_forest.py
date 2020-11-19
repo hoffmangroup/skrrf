@@ -144,7 +144,7 @@ def _parallel_build_trees(tree, forest, X, y, sample_weight, tree_idx, n_trees,
     """
     Private function used to fit a single tree in parallel."""
     # if verbose > 1:
-    print("building tree %d of %d" % (tree_idx + 1, n_trees))
+    # print("building tree %d of %d" % (tree_idx + 1, n_trees))
     # stratified_down_sampling = True
 
     if forest.stratified_down_sampling:
