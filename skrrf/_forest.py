@@ -147,8 +147,8 @@ def _parallel_build_trees(tree, forest, X, y, sample_weight, tree_idx, n_trees,
     # print("building tree %d of %d" % (tree_idx + 1, n_trees))
     # stratified_down_sampling = True
 
+    # Code added by me (mmendez12)
     if forest.stratified_down_sampling:
-                ### me me me
         n_samples = X.shape[0]
         if sample_weight is None:
             curr_sample_weight = np.ones((n_samples,), dtype=np.float64)

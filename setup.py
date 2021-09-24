@@ -15,9 +15,7 @@ setup(
     author='mmendez12',
     author_email='mickael.mendez@mail.utoronto.ca',
     description='',
-    # install_requires=['numpy', '', 'scikit-learn'],
+    install_requires=['numpy', 'scikit-learn'],
     ext_modules=cythonize(exts),
     include_dirs=[numpy.get_include()]
 )
-
-#criterion, splitter, tree
