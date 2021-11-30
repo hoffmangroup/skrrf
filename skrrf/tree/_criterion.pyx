@@ -2,7 +2,9 @@
 # cython: boundscheck=False
 # cython: wraparound=False
 
-# Authors: Gilles Louppe <g.louppe@gmail.com>
+# Author: Mickaël Mendez
+# Original authors:
+#          Gilles Louppe <g.louppe@gmail.com>
 #          Peter Prettenhofer <peter.prettenhofer@gmail.com>
 #          Brian Holt <bdholt1@gmail.com>
 #          Noel Dawe <noel@dawe.me>

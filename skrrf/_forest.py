@@ -32,7 +32,9 @@ The module structure is the following:
 Single and multi-output problems are both handled.
 """
 
-# Authors: Gilles Louppe <g.louppe@gmail.com>
+# Author: Mickaël Mendez
+# Original authors:
+#          Gilles Louppe <g.louppe@gmail.com>
 #          Brian Holt <bdholt1@gmail.com>
 #          Joly Arnaud <arnaud.v.joly@gmail.com>
 #          Fares Hedayati <fares.hedayati@gmail.com>
